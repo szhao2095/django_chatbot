@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 
 notes.txt
+env_vars.py
+migrations/
