@@ -3,8 +3,6 @@ import openai
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.chains import ConversationChain
-from .models import ChatHistory
-from .serializers import ChatHistorySerializer
 
 from .env_vars import OPENAI_API_KEY, CLAUDE_API_KEY
 
@@ -15,6 +13,7 @@ class ChatService:
         self.user_id = user_id
         self.message = message
         self.ai_provider = ai_provider
+        self.conversation_history = []
         self.setup_ai_provider()
 
     def setup_ai_provider(self):
@@ -34,6 +33,12 @@ class ChatService:
             )
         # Add other AI providers here
 
+    def handle_message(self, message):
+        self.message = message
+        response = self.call_ai_provider()
+        self.conversation_history.append((self.message, response))
+        return response
+
     def call_ai_provider(self):
         logger.debug("Calling AI provider")
         try:
@@ -44,21 +49,17 @@ class ChatService:
             logger.error(f"Error calling AI provider: {e}")
             return "An error occurred while processing your request."
 
-    def save_to_database(self, response):
-        logger.debug(f"Saving to database: {self.message}, {response}")
-        try:
-            chat_history = ChatHistory.objects.create(
+    def save_conversation(self):
+        from .models import ChatHistory
+        for message, response in self.conversation_history:
+          try:
+            logger.debug(f"Saving to database: {self.message}, {response}")
+            ChatHistory.objects.create(
                 user_id=self.user_id,
-                message=self.message,
-                response=response,
+                message=message,
+                response=response
             )
-            logger.debug("Chat history saved successfully")
-            return chat_history
-        except Exception as e:
-            logger.error(f"Error saving chat history: {e}")
-            return None
-
-    def get_reply(self):
-        response = self.call_ai_provider()
-        _ = self.save_to_database(response)
-        return response
+          except Exception as e:
+              logger.error(f"Error saving chat history: {e}")
+              return None
+        logger.debug("Chat history saved successfully")

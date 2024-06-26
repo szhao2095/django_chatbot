@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import ChatHistory
 
 class ChatHistorySerializer(serializers.ModelSerializer):
     class Meta:
+        from .models import ChatHistory
         model = ChatHistory
         fields = '__all__'
