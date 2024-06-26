@@ -1,7 +1,7 @@
 import json
 import uuid
 from channels.generic.websocket import WebsocketConsumer
-from .services import ChatService
+from .chatservice import ChatService
 
 import logging
 logger = logging.getLogger('chatbot_core')
