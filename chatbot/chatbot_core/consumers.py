@@ -9,13 +9,12 @@ logger = logging.getLogger('chatbot_core')
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.user_id = str(uuid.uuid4())
-        self.chat_service = ChatService(user_id=self.user_id, message="")
+        self.chat_service = ChatService(user_id=self.user_id)
         self.accept()
         logger.debug(f"WebSocket connection accepted for user: {self.user_id}")
 
     def disconnect(self, close_code):
         logger.debug(f"WebSocket connection closed for user: {self.user_id}")
-        self.chat_service.save_conversation()
         pass
 
     def receive(self, text_data):
