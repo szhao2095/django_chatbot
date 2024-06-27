@@ -164,3 +164,5 @@ cython_debug/
 notes.txt
 env_vars.py
 migrations/
+/chatbot/chatbot_core/vector_store_files/*
+!/chatbot/chatbot_core/vector_store_files/

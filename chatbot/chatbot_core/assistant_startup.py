@@ -3,11 +3,11 @@ import os
 from datetime import datetime, timedelta
 from django.conf import settings
 from openai import OpenAI
-import logging
 
 from .env_vars import OPENAI_API_KEY
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
 
+import logging
 logger = logging.getLogger('chatbot_core')
 
 def load_config():
@@ -61,8 +61,3 @@ def main():
 
     config['last_run_date'] = now.isoformat()
     save_config(config)
-
-# if __name__ == '__main__':
-#     logger.debug("Running startup script.")
-#     main()
-#     logger.debug("Startup script completed.")

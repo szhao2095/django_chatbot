@@ -7,6 +7,16 @@ from .env_vars import OPENAI_API_KEY
 from typing_extensions import override
 from openai import AssistantEventHandler
 
+import logging
+logger = logging.getLogger('chatbot_core')
+
+def load_config(config_path):
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
 class EventHandler(AssistantEventHandler):    
     @override
     def on_text_created(self, text) -> None:
@@ -43,13 +53,8 @@ class OpenAIChatService:
 
         self.streamOutput = streamOutput
 
-        try:
-            with open(os.path.join(os.path.dirname(__file__), 'assistant_config.json'), 'r') as f:
-                config = json.load(f)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Configuration file not found at {CONFIG_PATH}")
-
         if not assistant_id:
+            config = load_config(os.path.join(os.path.dirname(__file__), 'assistant_config.json'))
             assistant_id = config.get('assistant_id')
             if not assistant_id:
                 raise ValueError("assistant_id not found in configuration file.")
@@ -67,9 +72,24 @@ class OpenAIChatService:
             thread_id = self.client.beta.threads.create().id
         self.thread_id = thread_id
 
+        # if not vector_store_id:
+            # vector_store_id = self.client.beta.vector_stores.create(name="Vector Store").id
+            
+        # There are two types of vector stores, this one is the one attached to assistant
+        # The other is the kind that attaches to threads, but that appears to be no different from attaching files directly in msg
+        # See: https://platform.openai.com/docs/assistants/tools/file-search/vector-stores
+        config = load_config(os.path.join(os.path.dirname(__file__), 'vector_store_config.json'))
+        vector_store_id = config.get('vector_store_id')
         if not vector_store_id:
-            vector_store_id = self.client.beta.vector_stores.create(name="Vector Store").id
+            raise ValueError("vector_store_id not found in configuration file.")
+
         self.vector_store_id = vector_store_id
+        self.assistant_id = self.client.beta.assistants.update(
+            assistant_id=self.assistant_id,
+            tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
+        ).id
+
+        logger.debug(f"Created OpenAIChatService instance with thread_id:{self.thread_id}, assistant_id:{self.assistant_id}, vector_store_id:{self.vector_store_id}")
 
 
     def add_message(self, user_message, image_paths=None, file_paths=None):

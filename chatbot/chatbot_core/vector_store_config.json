@@ -1,0 +1,31 @@
+{
+    "current_vector_store": {
+        "vector_store_name": "Tax Documents",
+        "files_folder": "./vector_store_files/"
+    },
+    "desired_vector_store": {
+        "vector_store_name": "Tax Documents",
+        "files_folder": "./vector_store_files/"
+    },
+    "loaded_files": [
+        {
+            "filename": "file1.pdf",
+            "filetype": "pdf"
+        },
+        {
+            "filename": "text.txt",
+            "filetype": "txt"
+        },
+        {
+            "filename": "text2.txt",
+            "filetype": "txt"
+        },
+        {
+            "filename": "file2.pdf",
+            "filetype": "pdf"
+        }
+    ],
+    "vector_store_id": "vs_aczSgamNr9t6VKCzHRFHDE7P",
+    "last_run_date": "2024-06-27T13:58:32.589046",
+    "last_creation_date": "2024-06-27T04:19:06.516600"
+}
