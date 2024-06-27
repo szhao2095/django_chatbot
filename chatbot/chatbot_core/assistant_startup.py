@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from openai import OpenAI
 
@@ -37,11 +37,11 @@ def main():
     client = OpenAI(api_key=OPENAI_API_KEY)
     config = load_config()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     assistant_id = config.get('assistant_id')
     last_creation_date_str = config.get('last_creation_date')
-    last_creation_date = datetime.fromisoformat(last_creation_date_str) if last_creation_date_str else None
+    last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
 
     if (
         not assistant_id or 

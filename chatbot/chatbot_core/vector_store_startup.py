@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 
 from .env_vars import OPENAI_API_KEY
@@ -71,16 +71,27 @@ def upload_files(client, vector_store_id, valid_file_paths):
         for file in file_streams:
             file.close()
 
+def get_all_vector_store_files(client, vector_store_id):
+    vector_store = client.beta.vector_stores.retrieve(vector_store_id)
+    file_list = client.beta.vector_stores.files.list(vector_store_id=vector_store.id)
+    all_files = []
+    for file in file_list.data:
+        file_details = client.files.retrieve(file.id)
+        all_files.append((file, file_details))
+        print(f"File ID: {file.id}, Filename: {file_details.filename}")
+
+    return all_files
+
 def main():
     logger.debug("Initializing OpenAI client.")
     client = OpenAI(api_key=OPENAI_API_KEY)
     config = load_config()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     vector_store_id = config.get('vector_store_id')
     last_creation_date_str = config.get('last_creation_date')
-    last_creation_date = datetime.fromisoformat(last_creation_date_str) if last_creation_date_str else None
+    last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
 
     recreate_vector_store = (
         not vector_store_id or 
@@ -89,6 +100,8 @@ def main():
     )
 
     files_folder = os.path.join(os.path.dirname(__file__), config['desired_vector_store']['files_folder'])
+    if not os.path.exists(files_folder):
+        os.makedirs(files_folder)
     file_paths = get_file_paths(files_folder)
     loaded_filenames = {file_info['filename'] for file_info in config['loaded_files']}
 
