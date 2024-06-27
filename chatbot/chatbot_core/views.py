@@ -18,49 +18,46 @@ class CreateOrValidateTokenView(APIView):
 
         # Extract token from the Authorization header
         auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            logger.debug("Authorization header missing")
-            return Response({'error': 'Authorization header missing'}, status=status.HTTP_401_UNAUTHORIZED)
+        if auth_header:
+          try:
+              token = auth_header.split(' ')[1]
+          except IndexError:
+              logger.debug("Token missing in Authorization header")
+              return Response({'error': 'Token missing in Authorization header'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            token = auth_header.split(' ')[1]
-        except IndexError:
-            logger.debug("Token missing in Authorization header")
-            return Response({'error': 'Token missing in Authorization header'}, status=status.HTTP_401_UNAUTHORIZED)
+          if token:
+              logger.debug("Token provided, attempting to decode")
+              try:
+                  payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
+                  unique_id = payload.get('unique_id')
+                  logger.debug(f"Token decoded successfully, unique_id: {unique_id}")
 
-        if token:
-            logger.debug("Token provided, attempting to decode")
-            try:
-                payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
-                unique_id = payload.get('unique_id')
-                logger.debug(f"Token decoded successfully, unique_id: {unique_id}")
+                  # Fetch the ChatRecord entry
+                  chat_record = ChatRecord.objects.get(unique_id=unique_id)
+                  logger.debug(f"Chat record found for unique_id: {unique_id}")
 
-                # Fetch the ChatRecord entry
-                chat_record = ChatRecord.objects.get(unique_id=unique_id)
-                logger.debug(f"Chat record found for unique_id: {unique_id}")
+                  # Extend the token's expiration date
+                  new_payload = {
+                      'unique_id': unique_id,
+                      'exp': datetime.utcnow() + timedelta(days=30),
+                      'iat': datetime.utcnow()
+                  }
+                  new_token = jwt.encode(new_payload, JWT_SECRET_KEY, algorithm='HS256')
+                  logger.debug("Token expiration extended")
 
-                # Extend the token's expiration date
-                new_payload = {
-                    'unique_id': unique_id,
-                    'exp': datetime.utcnow() + timedelta(days=30),
-                    'iat': datetime.utcnow()
-                }
-                new_token = jwt.encode(new_payload, JWT_SECRET_KEY, algorithm='HS256')
-                logger.debug("Token expiration extended")
-
-                return Response({
-                    'new_token': new_token
-                }, status=status.HTTP_200_OK)
-            
-            except jwt.ExpiredSignatureError:
-                logger.debug("Token expired")
-                return Response({'error': 'Token expired'}, status=status.HTTP_401_UNAUTHORIZED)
-            except jwt.InvalidTokenError:
-                logger.debug("Invalid token")
-                return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
-            except ChatRecord.DoesNotExist:
-                logger.debug(f"No chat record found for unique_id: {unique_id}")
-                return Response({'error': 'Chat record not found'}, status=status.HTTP_404_NOT_FOUND)
+                  return Response({
+                      'new_token': new_token
+                  }, status=status.HTTP_200_OK)
+              
+              except jwt.ExpiredSignatureError:
+                  logger.debug("Token expired")
+                  return Response({'error': 'Token expired'}, status=status.HTTP_401_UNAUTHORIZED)
+              except jwt.InvalidTokenError:
+                  logger.debug("Invalid token")
+                  return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+              except ChatRecord.DoesNotExist:
+                  logger.debug(f"No chat record found for unique_id: {unique_id}")
+                  return Response({'error': 'Chat record not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
             logger.debug("No token provided, creating a new one")
             unique_id = str(uuid.uuid4())

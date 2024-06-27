@@ -1,0 +1,25 @@
+{
+    "current_assistant": {
+        "name": "Tax Assistant",
+        "description": "You are a tax assistant. Assist with tax-related questions.",
+        "model": "gpt-4o",
+        "tools": [
+            {
+                "type": "file_search"
+            }
+        ]
+    },
+    "desired_assistant": {
+        "name": "Tax Assistant",
+        "description": "You are a tax assistant. Assist with tax-related questions.",
+        "model": "gpt-4o",
+        "tools": [
+            {
+                "type": "file_search"
+            }
+        ]
+    },
+    "assistant_id": "asst_qb9AisIE8nrf3EwzofVxyZuT",
+    "last_run_date": "2024-06-27T01:09:07.816442",
+    "last_creation_date": "2024-06-27T00:56:31.011495"
+}

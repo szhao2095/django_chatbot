@@ -1,4 +1,6 @@
 import time
+import os
+import json
 from openai import OpenAI
 from .env_vars import OPENAI_API_KEY
 
@@ -41,13 +43,24 @@ class OpenAIChatService:
 
         self.streamOutput = streamOutput
 
+        try:
+            with open(os.path.join(os.path.dirname(__file__), 'assistant_config.json'), 'r') as f:
+                config = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Configuration file not found at {CONFIG_PATH}")
+
         if not assistant_id:
-            assistant_id = self.client.beta.assistants.create(
-                name="Tax Assistant",
-                description="You are a tax assistant. Assist with tax related questions.",
-                model="gpt-4o",
-                tools=[{"type": "file_search"}]
-            ).id
+            assistant_id = config.get('assistant_id')
+            if not assistant_id:
+                raise ValueError("assistant_id not found in configuration file.")
+
+            # assistant_id = self.client.beta.assistants.create(
+            #     name="Tax Assistant",
+            #     description="You are a tax assistant. Assist with tax related questions.",
+            #     model="gpt-4o",
+            #     tools=[{"type": "file_search"}]
+            # ).id
+
         self.assistant_id = assistant_id
 
         if not thread_id:
