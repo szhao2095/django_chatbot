@@ -3,9 +3,10 @@ import { MessageType } from './types';
 
 interface MessageProps {
   messages: MessageType[];
+  imageUrl: string;
 }
 
-const Message: React.FC<MessageProps> = ({ messages }) => {
+const Message: React.FC<MessageProps> = ({ messages, imageUrl }) => {
   return (
     <div className={`chat-message w-full`}>
       <div className={`flex items-end ${messages[0].type === 'sent' ? 'justify-end' : ''}`}>
@@ -18,7 +19,7 @@ const Message: React.FC<MessageProps> = ({ messages }) => {
             </div>
           ))}
         </div>
-        <img src={messages[0].userImage} alt={messages[0].user} className={`w-6 h-6 rounded-full ${messages[0].type === 'sent' ? 'order-2' : 'order-1'}`} />
+        <img src={imageUrl} alt={messages[0].user} className={`w-6 h-6 rounded-full ${messages[0].type === 'sent' ? 'order-2' : 'order-1'}`} />
       </div>
     </div>
   );

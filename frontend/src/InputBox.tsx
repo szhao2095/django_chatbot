@@ -22,7 +22,6 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
     addMessage({
       text: message,
       user: 'You',
-      userImage: 'https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=3&w=144&h=144', // Placeholder image
       type: 'sent',
     });
     setMessage("");
@@ -46,7 +45,6 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
       addMessage({
         text: response.data.response,
         user: 'Assistant', // Assuming the response is from a bot
-        userImage: 'https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144', // Placeholder image for bot
         type: 'received',
       });
 
@@ -55,7 +53,6 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
       addMessage({
         text: 'Error sending message. Please try again.',
         user: 'Assistant',
-        userImage: 'https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144', // Placeholder image for bot
         type: 'received',
         isError: true,
       });

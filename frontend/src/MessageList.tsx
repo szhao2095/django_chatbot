@@ -4,9 +4,11 @@ import { MessageType } from './types';
 
 interface MessageListProps {
   messages: MessageType[];
+  userImage: string;
+  assistantImage: string;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, userImage, assistantImage }) => {
   const groupedMessages: MessageType[][] = [];
 
   let currentGroup: MessageType[] = [];
@@ -26,9 +28,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
 
   return (
     <div id="messages" className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch flex-grow items-start justify-start">
-      {groupedMessages.map((group, index) => (
-        <Message key={index} messages={group} />
-      ))}
+      {groupedMessages.map((group, index) => {
+        const imageUrl = group[0].type === 'sent' ? userImage : assistantImage;
+        return <Message key={index} messages={group} imageUrl={imageUrl} />;
+      })}
     </div>
   );
 };
