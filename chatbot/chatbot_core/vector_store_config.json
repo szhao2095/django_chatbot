@@ -1,8 +1,9 @@
 {
     "current_vector_store": {
         "tax_documents": {
-            "vector_store_name": "Tax Documents",
-            "files_folder": "./vector_store_files/",
+            "vector_store_id": "vs_iruh5ux5ku393ci1saDHDWa2",
+            "expires_after_anchor": "last_active_at",
+            "expires_after_days": 7,
             "loaded_files": [
                 {
                     "filename": "file1.pdf",
@@ -25,16 +26,19 @@
                     "filetype": "txt"
                 }
             ],
-            "vector_store_id": "vs_0yT0EIUDAfvHWG2mZIqOczRY",
-            "last_creation_date": "2024-06-27T15:43:17.261037+00:00"
+            "vector_store_name": "Tax Documents",
+            "files_folder": "./vector_store_files/",
+            "last_creation_date": "2024-06-28T19:14:44.754061+00:00"
         }
     },
     "desired_vector_store": [
         {
             "id": "tax_documents",
             "vector_store_name": "Tax Documents",
-            "files_folder": "./vector_store_files/"
+            "files_folder": "./vector_store_files/",
+            "expires_after_days": 7,
+            "expires_after_anchor": "last_active_at"
         }
     ],
-    "last_run_date": "2024-06-28T19:08:27.444644+00:00"
+    "last_run_date": "2024-06-28T19:14:44.754061+00:00"
 }

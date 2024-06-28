@@ -112,15 +112,21 @@ def main():
 
         if recreate_vector_store:
             logger.debug(f"Creating or updating the vector store with id: {human_readable_id}.")
+
+            expires_after_anchor = desired_store.get("expires_after_anchor", "last_active_at")
+            expires_after_days = desired_store.get("expires_after_days", 7)
+
             vector_store = client.beta.vector_stores.create(
                 name=desired_store['vector_store_name'],
                 expires_after={
-                  "anchor": "last_active_at",
-                  "days": 7
+                    "anchor": expires_after_anchor,
+                    "days": expires_after_days
                 }
             )
             vector_store_id = vector_store.id
             current_store['vector_store_id'] = vector_store_id
+            current_store['expires_after_anchor'] = expires_after_anchor
+            current_store['expires_after_days'] = expires_after_days
 
             valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, set())
             if valid_file_paths:
