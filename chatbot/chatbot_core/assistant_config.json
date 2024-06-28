@@ -1,25 +1,35 @@
 {
-    "current_assistant": {
-        "name": "Tax Assistant",
-        "description": "You are a tax assistant. Assist with tax-related questions.",
-        "model": "gpt-4o",
-        "tools": [
-            {
-                "type": "file_search"
-            }
-        ]
+    "current_assistants": {
+        "tax_assistant": {
+            "id": "tax_assistant",
+            "name": "Tax Assistant",
+            "description": "You are a tax assistant. Assist with tax-related questions.",
+            "model": "gpt-4o",
+            "tools": [
+                {
+                    "type": "file_search"
+                }
+            ]
+        }
     },
-    "desired_assistant": {
-        "name": "Tax Assistant",
-        "description": "You are a tax assistant. Assist with tax-related questions.",
-        "model": "gpt-4o",
-        "tools": [
-            {
-                "type": "file_search"
-            }
-        ]
+    "desired_assistants": [
+        {
+            "id": "tax_assistant",
+            "name": "Tax Assistant",
+            "description": "You are a tax assistant. Assist with tax-related questions.",
+            "model": "gpt-4o",
+            "tools": [
+                {
+                    "type": "file_search"
+                }
+            ]
+        }
+    ],
+    "assistant_id": {
+        "tax_assistant": "asst_9AP4TPQQ3siWsJZyvcaZAyfc"
     },
-    "assistant_id": "asst_sznoZH3BkbqJHW6zBy9wxj1Z",
-    "last_run_date": "2024-06-27T15:45:05.977526+00:00",
-    "last_creation_date": "2024-06-27T15:43:16.942565+00:00"
+    "last_run_date": "2024-06-28T18:19:40.594142+00:00",
+    "last_creation_date": {
+        "tax_assistant": "2024-06-28T18:16:13.948760+00:00"
+    }
 }

@@ -39,25 +39,35 @@ def main():
 
     now = datetime.now(timezone.utc)
 
-    assistant_id = config.get('assistant_id')
-    last_creation_date_str = config.get('last_creation_date')
-    last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
+    if 'assistant_id' not in config:
+        config['assistant_id'] = {}
+    if 'last_creation_date' not in config:
+        config['last_creation_date'] = {}
+    if 'current_assistants' not in config:
+        config['current_assistants'] = {}
 
-    if (
-        not assistant_id or 
-        is_config_different(config['current_assistant'], config['desired_assistant']) or 
-        (last_creation_date and (now - last_creation_date) > timedelta(weeks=1))
-    ):
-        logger.debug("Creating or updating the assistant.")
-        assistant = client.beta.assistants.create(
-            name=config['desired_assistant']['name'],
-            description=config['desired_assistant']['description'],
-            model=config['desired_assistant']['model'],
-            tools=config['desired_assistant']['tools']
-        )
-        config['assistant_id'] = assistant.id
-        config['current_assistant'] = config['desired_assistant']
-        config['last_creation_date'] = now.isoformat()
+    for desired_assistant in config['desired_assistants']:
+        human_readable_id = desired_assistant['id']
+        assistant_id = config['assistant_id'].get(human_readable_id)
+        last_creation_date_str = config['last_creation_date'].get(human_readable_id)
+        last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
+        current_assistant = config['current_assistants'].get(human_readable_id, {})
+
+        if (
+            not assistant_id or 
+            is_config_different(current_assistant, desired_assistant) or 
+            (last_creation_date and (now - last_creation_date) > timedelta(weeks=1))
+        ):
+            logger.debug(f"Creating or updating the assistant with id: {human_readable_id}.")
+            assistant = client.beta.assistants.create(
+                name=desired_assistant['name'],
+                description=desired_assistant['description'],
+                model=desired_assistant['model'],
+                tools=desired_assistant['tools']
+            )
+            config['assistant_id'][human_readable_id] = assistant.id
+            config['current_assistants'][human_readable_id] = desired_assistant
+            config['last_creation_date'][human_readable_id] = now.isoformat()
 
     config['last_run_date'] = now.isoformat()
     save_config(config)

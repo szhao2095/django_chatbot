@@ -55,16 +55,9 @@ class OpenAIChatService:
 
         if not assistant_id:
             config = load_config(os.path.join(os.path.dirname(__file__), 'assistant_config.json'))
-            assistant_id = config.get('assistant_id')
+            assistant_id = config['assistant_id'].get("tax_assistant") # Hard coded for now
             if not assistant_id:
                 raise ValueError("assistant_id not found in configuration file.")
-
-            # assistant_id = self.client.beta.assistants.create(
-            #     name="Tax Assistant",
-            #     description="You are a tax assistant. Assist with tax related questions.",
-            #     model="gpt-4o",
-            #     tools=[{"type": "file_search"}]
-            # ).id
 
         self.assistant_id = assistant_id
 
