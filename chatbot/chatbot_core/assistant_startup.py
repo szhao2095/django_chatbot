@@ -39,19 +39,15 @@ def main():
 
     now = datetime.now(timezone.utc)
 
-    if 'assistant_id' not in config:
-        config['assistant_id'] = {}
-    if 'last_creation_date' not in config:
-        config['last_creation_date'] = {}
     if 'current_assistants' not in config:
         config['current_assistants'] = {}
 
     for desired_assistant in config['desired_assistants']:
         human_readable_id = desired_assistant['id']
-        assistant_id = config['assistant_id'].get(human_readable_id)
-        last_creation_date_str = config['last_creation_date'].get(human_readable_id)
-        last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
         current_assistant = config['current_assistants'].get(human_readable_id, {})
+        assistant_id = current_assistant.get('assistant_id')
+        last_creation_date_str = current_assistant.get('last_creation_date')
+        last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
 
         if (
             not assistant_id or 
@@ -65,9 +61,11 @@ def main():
                 model=desired_assistant['model'],
                 tools=desired_assistant['tools']
             )
-            config['assistant_id'][human_readable_id] = assistant.id
-            config['current_assistants'][human_readable_id] = desired_assistant
-            config['last_creation_date'][human_readable_id] = now.isoformat()
+            config['current_assistants'][human_readable_id] = {
+                **desired_assistant,
+                'assistant_id': assistant.id,
+                'last_creation_date': now.isoformat()
+            }
 
     config['last_run_date'] = now.isoformat()
     save_config(config)

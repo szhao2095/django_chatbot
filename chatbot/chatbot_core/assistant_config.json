@@ -9,7 +9,9 @@
                 {
                     "type": "file_search"
                 }
-            ]
+            ],
+            "assistant_id": "asst_mNuywomXBxnAUiH3vglPr5OK",
+            "last_creation_date": "2024-06-28T18:24:58.252209+00:00"
         }
     },
     "desired_assistants": [
@@ -25,11 +27,5 @@
             ]
         }
     ],
-    "assistant_id": {
-        "tax_assistant": "asst_9AP4TPQQ3siWsJZyvcaZAyfc"
-    },
-    "last_run_date": "2024-06-28T18:19:40.594142+00:00",
-    "last_creation_date": {
-        "tax_assistant": "2024-06-28T18:16:13.948760+00:00"
-    }
+    "last_run_date": "2024-06-28T18:42:42.568324+00:00"
 }

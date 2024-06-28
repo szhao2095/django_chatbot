@@ -54,10 +54,18 @@ class OpenAIChatService:
         self.streamOutput = streamOutput
 
         if not assistant_id:
-            config = load_config(os.path.join(os.path.dirname(__file__), 'assistant_config.json'))
-            assistant_id = config['assistant_id'].get("tax_assistant") # Hard coded for now
+            assistant_to_use = 'tax_assistant'
+            current_assistants = 'current_assistants'
+            config_path = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
+            config = load_config(config_path)
+            
+            if current_assistants not in config or assistant_to_use not in config[current_assistants]:
+                logger.error(f"{assistant_to_use} configuration not found in {current_assistants}.")
+                raise ValueError(f"{assistant_to_use} configuration not found in {current_assistants}.")
+            
+            assistant_id = config[current_assistants][assistant_to_use].get('assistant_id')
             if not assistant_id:
-                raise ValueError("assistant_id not found in configuration file.")
+                raise ValueError(f"assistant_id not found in {current_assistants} for {assistant_to_use}.")
 
         self.assistant_id = assistant_id
 
