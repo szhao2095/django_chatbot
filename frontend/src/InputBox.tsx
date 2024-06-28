@@ -4,9 +4,10 @@ import { MessageType } from './types';
 
 interface InputBoxProps {
   addMessage: (message: MessageType) => void;
+  token: string;
 }
 
-const InputBox: React.FC<InputBoxProps> = ({ addMessage }) => {
+const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,8 +17,6 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage }) => {
 
   const handleSendMessage = async () => {
     if (message.trim() === '') return;
-
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfaWQiOiJmYTc2MWZkMy1lNTZmLTQ2ODEtYjM1ZS1iYjZmYjkxM2E5ODgiLCJleHAiOjE3MjIwNjgxNTUsImlhdCI6MTcxOTQ3NjE1NX0.qh90MiD3LBEHUy1eTIFmkt2V7iNJE7H23GpZ0a1QfIg'; // Replace with your actual token
 
     // Save the message before sending to API
     addMessage({
