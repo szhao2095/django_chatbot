@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import ChatRecord
+from .models import ChatRecord, ChatHistory
 from .chatservice import OpenAIChatService
 from .env_vars import JWT_SECRET_KEY
 
@@ -77,7 +77,7 @@ class CreateOrValidateTokenView(APIView):
             logger.debug(f"vector_store_id: {openAIChatService.vector_store_id}")
 
             # Create a new ChatRecord entry
-            chat_record = ChatRecord.objects.create(
+            _ = ChatRecord.objects.create(
                 unique_id=unique_id,
                 assistant_id=openAIChatService.assistant_id,
                 thread_id=openAIChatService.thread_id,
@@ -148,6 +148,12 @@ class SendMessageView(APIView):
         if not chat_response:
             logger.debug("No chat response received")
             return Response({'error': 'An unexpected error has occured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        _ = ChatHistory.objects.create(
+            unique_id=unique_id,
+            user_message=message_content,
+            response=chat_response if chat_response else ""
+        )
 
         return Response({
             'response': chat_response
