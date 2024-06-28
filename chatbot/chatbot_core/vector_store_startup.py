@@ -43,7 +43,6 @@ def get_valid_file_paths(file_paths, loaded_filenames):
     logger.debug(f"Total files found: {len(file_paths)}")
     for path in file_paths:
         filename = os.path.basename(path)
-        filename = os.path.basename(path)
         file_type = get_file_type(filename)
         logger.debug(f"Checking file {filename} of type {file_type}")
 
@@ -89,48 +88,57 @@ def main():
 
     now = datetime.now(timezone.utc)
 
-    vector_store_id = config.get('vector_store_id')
-    last_creation_date_str = config.get('last_creation_date')
-    last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
+    if 'current_vector_store' not in config:
+        config['current_vector_store'] = {}
 
-    recreate_vector_store = (
-        not vector_store_id or 
-        is_config_different(config['current_vector_store'], config['desired_vector_store']) or 
-        (last_creation_date and (now - last_creation_date) > timedelta(weeks=1))
-    )
+    for desired_store in config.get('desired_vector_store', []):
+        human_readable_id = desired_store['id']
+        current_store = config['current_vector_store'].get(human_readable_id, {})
+        vector_store_id = current_store.get('vector_store_id')
+        last_creation_date_str = current_store.get('last_creation_date')
+        last_creation_date = datetime.fromisoformat(last_creation_date_str).replace(tzinfo=timezone.utc) if last_creation_date_str else None
 
-    files_folder = os.path.join(os.path.dirname(__file__), config['desired_vector_store']['files_folder'])
-    if not os.path.exists(files_folder):
-        os.makedirs(files_folder)
-    file_paths = get_file_paths(files_folder)
-    loaded_filenames = {file_info['filename'] for file_info in config['loaded_files']}
-
-    if recreate_vector_store:
-        logger.debug("Creating or updating the vector store.")
-        vector_store = client.beta.vector_stores.create(
-            name=config['desired_vector_store']['vector_store_name'],
-            expires_after={
-              "anchor": "last_active_at",
-              "days": 7
-            }
+        recreate_vector_store = (
+            not vector_store_id or 
+            is_config_different(current_store, desired_store) or 
+            (last_creation_date and (now - last_creation_date) > timedelta(weeks=1))
         )
-        vector_store_id = vector_store.id
-        config['vector_store_id'] = vector_store_id
 
-        valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, set())
-        if valid_file_paths:
-            upload_files(client, vector_store_id, valid_file_paths)
-            config['loaded_files'] = new_loaded_files
+        files_folder = os.path.join(os.path.dirname(__file__), desired_store['files_folder'])
+        if not os.path.exists(files_folder):
+            os.makedirs(files_folder)
+        file_paths = get_file_paths(files_folder)
+        loaded_filenames = {file_info['filename'] for file_info in current_store.get('loaded_files', [])}
 
-        config['current_vector_store'] = config['desired_vector_store']
-        config['last_creation_date'] = now.isoformat()
-    else:
-        logger.debug("Checking for new files to upload.")
-        valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, loaded_filenames)
+        if recreate_vector_store:
+            logger.debug(f"Creating or updating the vector store with id: {human_readable_id}.")
+            vector_store = client.beta.vector_stores.create(
+                name=desired_store['vector_store_name'],
+                expires_after={
+                  "anchor": "last_active_at",
+                  "days": 7
+                }
+            )
+            vector_store_id = vector_store.id
+            current_store['vector_store_id'] = vector_store_id
 
-        if valid_file_paths:
-            upload_files(client, vector_store_id, valid_file_paths)
-            config['loaded_files'].extend(new_loaded_files)
+            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, set())
+            if valid_file_paths:
+                upload_files(client, vector_store_id, valid_file_paths)
+                current_store['loaded_files'] = new_loaded_files
+
+            current_store['vector_store_name'] = desired_store['vector_store_name']
+            current_store['files_folder'] = desired_store['files_folder']
+            current_store['last_creation_date'] = now.isoformat()
+        else:
+            logger.debug(f"Checking for new files to upload for vector store with id: {human_readable_id}.")
+            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, loaded_filenames)
+
+            if valid_file_paths:
+                upload_files(client, vector_store_id, valid_file_paths)
+                current_store['loaded_files'].extend(new_loaded_files)
+
+        config['current_vector_store'][human_readable_id] = current_store
 
     config['last_run_date'] = now.isoformat()
     save_config(config)
