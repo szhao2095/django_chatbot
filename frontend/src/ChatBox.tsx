@@ -15,8 +15,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ token: initialToken, userImage, assis
   const [messages, setMessages] = useState<MessageType[]>([
     {
       text: 'Hi there! How can I assist you today?',
-      user: 'Assistant',
-      type: 'received',
+      isUser: false,
     },
   ]);
   const [token, setToken] = useState<string | null>(initialToken ?? null);

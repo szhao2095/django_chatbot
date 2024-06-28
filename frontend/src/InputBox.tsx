@@ -21,8 +21,7 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
     // Save the message before sending to API
     addMessage({
       text: message,
-      user: 'You',
-      type: 'sent',
+      isUser: true,
     });
     setMessage("");
     setLoading(true);
@@ -44,16 +43,14 @@ const InputBox: React.FC<InputBoxProps> = ({ addMessage, token }) => {
       // Add the response message from the API
       addMessage({
         text: response.data.response,
-        user: 'Assistant', // Assuming the response is from a bot
-        type: 'received',
+        isUser: false, 
       });
 
     } catch (error) {
       console.error('Error sending message:', error);
       addMessage({
         text: 'Error sending message. Please try again.',
-        user: 'Assistant',
-        type: 'received',
+        isUser: false, 
         isError: true,
       });
     } finally {

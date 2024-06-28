@@ -14,7 +14,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, userImage, assistan
   let currentGroup: MessageType[] = [];
 
   messages.forEach((message, index) => {
-    if (currentGroup.length === 0 || currentGroup[currentGroup.length - 1].type === message.type) {
+    if (currentGroup.length === 0 || currentGroup[currentGroup.length - 1].isUser === message.isUser) {
       currentGroup.push(message);
     } else {
       groupedMessages.push(currentGroup);
@@ -29,7 +29,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, userImage, assistan
   return (
     <div id="messages" className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch flex-grow items-start justify-start">
       {groupedMessages.map((group, index) => {
-        const imageUrl = group[0].type === 'sent' ? userImage : assistantImage;
+        const imageUrl = group[0].isUser ? userImage : assistantImage;
         return <Message key={index} messages={group} imageUrl={imageUrl} />;
       })}
     </div>
