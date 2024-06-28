@@ -46,7 +46,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ token: initialToken, userImage, assis
 
   return (
     <div className="flex-1 p-2 sm:p-6 justify-between flex flex-col h-screen">
-      <Header />
+      <Header assistantImage={assistantImage} />
       <MessageList messages={messages} userImage={userImage} assistantImage={assistantImage} />
       {token && <InputBox addMessage={addMessage} token={token} />}
     </div>
