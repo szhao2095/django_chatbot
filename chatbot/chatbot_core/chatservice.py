@@ -53,36 +53,39 @@ class OpenAIChatService:
 
         self.streamOutput = streamOutput
 
-        if not assistant_id:
-            assistant_to_use = 'tax_assistant'
-            current_assistants = 'current_assistants'
-            config_path = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
-            config = load_config(config_path)
-            
-            if current_assistants not in config or assistant_to_use not in config[current_assistants]:
-                logger.error(f"{assistant_to_use} configuration not found in {current_assistants}.")
-                raise ValueError(f"{assistant_to_use} configuration not found in {current_assistants}.")
-            
-            assistant_id = config[current_assistants][assistant_to_use].get('assistant_id')
-            if not assistant_id:
-                raise ValueError(f"assistant_id not found in {current_assistants} for {assistant_to_use}.")
-
-        self.assistant_id = assistant_id
-
         if not thread_id:
             thread_id = self.client.beta.threads.create().id
         self.thread_id = thread_id
 
-        # if not vector_store_id:
-            # vector_store_id = self.client.beta.vector_stores.create(name="Vector Store").id
+        if not assistant_id:
+            current_assistants = 'current_assistants'
+            assistant_to_use = 'tax_assistant'
+            as_config_path = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
+            as_config = load_config(as_config_path)
             
+            if current_assistants not in as_config or assistant_to_use not in as_config[current_assistants]:
+                logger.error(f"{assistant_to_use} configuration not found in {current_assistants}.")
+                raise ValueError(f"{assistant_to_use} configuration not found in {current_assistants}.")
+            
+            assistant_id = as_config[current_assistants][assistant_to_use].get('assistant_id')
+            if not assistant_id:
+                raise ValueError(f"assistant_id not found in {current_assistants} for {assistant_to_use}.")
+
+        self.assistant_id = assistant_id
+        
         # There are two types of vector stores, this one is the one attached to assistant
         # The other is the kind that attaches to threads, but that appears to be no different from attaching files directly in msg
         # See: https://platform.openai.com/docs/assistants/tools/file-search/vector-stores
-        config = load_config(os.path.join(os.path.dirname(__file__), 'vector_store_config.json'))
-        vector_store_id = config.get('vector_store_id')
+        current_vector_store = 'current_vector_store'
+        vector_store_to_use = 'tax_documents'
+        vs_config_path = os.path.join(os.path.dirname(__file__), 'vector_store_config.json')
+        vs_config = load_config(vs_config_path)
+        if current_vector_store not in vs_config or vector_store_to_use not in vs_config[current_vector_store]:
+            logger.error(f"{vector_store_to_use} configuration not found in {current_vector_store}.")
+            raise ValueError(f"{vector_store_to_use} configuration not found in {current_vector_store}.")
+        vector_store_id = vs_config[current_vector_store][vector_store_to_use].get('vector_store_id')
         if not vector_store_id:
-            raise ValueError("vector_store_id not found in configuration file.")
+            raise ValueError(f"vector_store_id not found in {current_vector_store} for {vector_store_to_use}.")
 
         self.vector_store_id = vector_store_id
         self.assistant_id = self.client.beta.assistants.update(

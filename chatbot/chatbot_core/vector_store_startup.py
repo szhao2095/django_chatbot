@@ -93,6 +93,12 @@ def get_all_vector_store_files(client, vector_store_id):
 
     return all_files
 
+def delete_file_from_vector_store(client, vector_store_id, file_id):
+    client.beta.vector_stores.files.delete(vector_store_id=vector_store_id, file_id=file_id)
+
+def delete_file(client, file_id):
+    client.files.delete(file_id)
+
 def main():
     logger.debug("Initializing OpenAI client.")
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -120,6 +126,7 @@ def main():
         if not os.path.exists(files_folder):
             os.makedirs(files_folder)
         file_paths = get_file_paths(files_folder)
+        file_names = [os.path.basename(path) for path in file_paths]
         loaded_files = {f['filename']: f for f in current_store.get('loaded_files', [])}
 
         if recreate_vector_store:
@@ -150,12 +157,34 @@ def main():
             current_store['last_creation_date'] = now.isoformat()
         else:
             logger.debug(f"Checking for new files to upload for vector store with id: {human_readable_id}.")
+            vector_store_files = get_all_vector_store_files(client, vector_store_id)
+            vector_store_file_ids = {file[1].filename: file[0].id for file in vector_store_files}
             valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, loaded_files)
+
+            # Check for files to delete
+            files_to_delete = []
+            for filename, file_info in loaded_files.items():
+                if filename not in new_loaded_files and filename not in file_names:
+                    logger.debug(f"File {filename} is in loaded_files but not in directory, deleting from vector store and OpenAI files.")
+                    delete_file_from_vector_store(client, vector_store_id, vector_store_file_ids[filename])
+                    delete_file(client, vector_store_file_ids[filename])
+                    files_to_delete.append(filename)
+
+            for filename in files_to_delete:
+                del loaded_files[filename]
+
+            # Check for changed files
+            for filename, file_info in new_loaded_files.items():
+                if filename in loaded_files and loaded_files[filename]['filehash'] != file_info['filehash']:
+                    logger.debug(f"File {filename} has changed, deleting old version from vector store and OpenAI files.")
+                    delete_file_from_vector_store(client, vector_store_id, vector_store_file_ids[filename])
+                    delete_file(client, vector_store_file_ids[filename])
 
             if valid_file_paths:
                 upload_files(client, vector_store_id, valid_file_paths)
                 loaded_files.update(new_loaded_files)
-                current_store['loaded_files'] = list(loaded_files.values())
+
+            current_store['loaded_files'] = list(loaded_files.values())
 
         config['current_vector_store'][human_readable_id] = current_store
 
