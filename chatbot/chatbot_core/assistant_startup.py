@@ -1,27 +1,27 @@
 import json
 import os
 from datetime import datetime, timedelta, timezone
-from django.conf import settings
 from openai import OpenAI
 
 from .env_vars import OPENAI_API_KEY
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
+ASSISTANT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
+VECTOR_STORE_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'vector_store_config.json')
 
 import logging
 logger = logging.getLogger('chatbot_core')
 
-def load_config():
+def load_config(path):
     try:
-        with open(CONFIG_PATH, 'r') as f:
-            logger.debug("Loading configuration file.")
+        with open(path, 'r') as f:
+            logger.debug(f"Loading configuration file from {path}.")
             return json.load(f)
     except FileNotFoundError:
-        logger.debug("Configuration file not found.")
+        logger.debug(f"Configuration file not found at {path}.")
         return {}
 
-def save_config(config):
-    with open(CONFIG_PATH, 'w') as f:
-        logger.debug("Saving configuration file.")
+def save_config(config, path):
+    with open(path, 'w') as f:
+        logger.debug(f"Saving configuration file to {path}.")
         json.dump(config, f, indent=4)
 
 def is_config_different(current, desired):
@@ -35,7 +35,8 @@ def is_config_different(current, desired):
 def main():
     logger.debug("Initializing OpenAI client.")
     client = OpenAI(api_key=OPENAI_API_KEY)
-    config = load_config()
+    config = load_config(ASSISTANT_CONFIG_PATH)
+    vector_store_config = load_config(VECTOR_STORE_CONFIG_PATH)
 
     now = datetime.now(timezone.utc)
 
@@ -53,6 +54,7 @@ def main():
             not assistant_id or 
             is_config_different(current_assistant, desired_assistant) or 
             (last_creation_date and (now - last_creation_date) > timedelta(weeks=1))
+            # or (vector_store_id and vector_store_id != current_assistant.get('vector_store_id'))
         ):
             logger.debug(f"Creating or updating the assistant with id: {human_readable_id}.")
             assistant = client.beta.assistants.create(
@@ -61,11 +63,28 @@ def main():
                 model=desired_assistant['model'],
                 tools=desired_assistant['tools']
             )
+            assistant_id = assistant.id
             config['current_assistants'][human_readable_id] = {
                 **desired_assistant,
                 'assistant_id': assistant.id,
+                'vector_store_id': "",
                 'last_creation_date': now.isoformat()
             }
 
+        # Check for vector store details
+        if 'vector_store' in desired_assistant and desired_assistant['vector_store']:
+            vector_store_id = vector_store_config['current_vector_store'].get(desired_assistant['vector_store'], {}).get('vector_store_id')
+
+            if not vector_store_id:
+                logger.debug(f"Vector store {desired_assistant['vector_store']} is specified for assistant {human_readable_id} but could not be found.")
+            else:
+                if vector_store_id != current_assistant.get('vector_store_id'):
+                    logger.debug(f"Updating assistant {human_readable_id} with vector store id: {vector_store_id}.")
+                    client.beta.assistants.update(
+                        assistant_id=assistant_id,
+                        tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}}
+                    )
+                    config['current_assistants'][human_readable_id]['vector_store_id'] = vector_store_id
+
     config['last_run_date'] = now.isoformat()
-    save_config(config)
+    save_config(config, ASSISTANT_CONFIG_PATH)

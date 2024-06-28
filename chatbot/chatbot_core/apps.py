@@ -10,16 +10,6 @@ class ChatbotCoreConfig(AppConfig):
 
     def ready(self):
         if os.environ.get('RUN_MAIN') == 'true': 
-            from . import assistant_startup
-            try:
-                logger.debug("==========================================================")
-                assistant_startup.main()
-                logger.info("Assistant configuration checked and updated successfully.")
-                logger.debug("Assistant configuration checked and updated successfully.")
-                logger.debug("==========================================================")
-            except Exception as e:
-                logger.error(f"Error in assistant configuration script: {e}")
-
             from . import vector_store_startup
             try:
                 logger.debug("==========================================================")
@@ -29,3 +19,13 @@ class ChatbotCoreConfig(AppConfig):
                 logger.debug("==========================================================")
             except Exception as e:
                 logger.error(f"Error in vector store configuration script: {e}")
+
+            from . import assistant_startup
+            try:
+                logger.debug("==========================================================")
+                assistant_startup.main()
+                logger.info("Assistant configuration checked and updated successfully.")
+                logger.debug("Assistant configuration checked and updated successfully.")
+                logger.debug("==========================================================")
+            except Exception as e:
+                logger.error(f"Error in assistant configuration script: {e}")

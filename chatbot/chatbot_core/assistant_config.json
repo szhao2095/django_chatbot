@@ -10,8 +10,25 @@
                     "type": "file_search"
                 }
             ],
-            "assistant_id": "asst_mNuywomXBxnAUiH3vglPr5OK",
-            "last_creation_date": "2024-06-28T18:24:58.252209+00:00"
+            "vector_store": "tax_documents",
+            "assistant_id": "asst_fgIUiDg0ARpRdOesHweyG5yr",
+            "vector_store_id": "vs_1ZYhfPxNwZq88uuGgpjZD3tH",
+            "last_creation_date": "2024-06-28T22:06:10.414157+00:00"
+        },
+        "tax_assistant_2": {
+            "id": "tax_assistant_2",
+            "name": "Tax Assistant",
+            "description": "You are a tax assistant. Assist with tax-related questions.",
+            "model": "gpt-4o",
+            "tools": [
+                {
+                    "type": "file_search"
+                }
+            ],
+            "vector_store": "",
+            "assistant_id": "asst_IeB57GWHrUUWDwJ1xRz957QS",
+            "vector_store_id": "",
+            "last_creation_date": "2024-06-28T22:07:05.894689+00:00"
         }
     },
     "desired_assistants": [
@@ -24,8 +41,21 @@
                 {
                     "type": "file_search"
                 }
-            ]
+            ],
+            "vector_store": "tax_documents"
+        },
+        {
+            "id": "tax_assistant_2",
+            "name": "Tax Assistant",
+            "description": "You are a tax assistant. Assist with tax-related questions.",
+            "model": "gpt-4o",
+            "tools": [
+                {
+                    "type": "file_search"
+                }
+            ],
+            "vector_store": ""
         }
     ],
-    "last_run_date": "2024-06-28T18:42:42.568324+00:00"
+    "last_run_date": "2024-06-28T22:08:55.239615+00:00"
 }
