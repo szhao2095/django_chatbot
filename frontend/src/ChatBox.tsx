@@ -23,7 +23,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ token: initialToken, userImage, assis
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const response = await axios.post('http://localhost:8000/api/v1/chat/create-or-validate-token/');
+        const response = await axios.post('http://localhost:8000/api/v1/chat/create-new-chat/');
         setToken(response.data.jwt_token);
       } catch (error) {
         console.error('Error fetching token:', error);

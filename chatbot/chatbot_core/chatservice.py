@@ -16,6 +16,35 @@ def load_config(config_path):
             return json.load(f)
     except FileNotFoundError:
         return {}
+    
+ASSISTANT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
+VECTOR_STORE_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'vector_store_config.json')
+
+class NewChatInitializer:
+    def __init__(self, assistant_name):
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
+        self.thread_id = self.client.beta.threads.create().id
+
+        self.assistant_config = load_config(ASSISTANT_CONFIG_PATH)
+        self.vector_store_config = load_config(VECTOR_STORE_CONFIG_PATH)
+        
+        self.current_assistant = self.assistant_config.get('current_assistants', {}).get(assistant_name)
+        if not self.current_assistant:
+            raise ValueError(f"Assistant with id {assistant_name} not found in current_assistants.")
+
+        self.assistant_id = self.current_assistant.get('assistant_id')
+        self.assistant_info = self.current_assistant
+
+        self.vector_store_id = None
+        self.vector_store_info = None
+
+        if 'vector_store' in self.current_assistant and self.current_assistant['vector_store']:
+            vector_store_name = self.current_assistant['vector_store']
+            vector_store_info = self.vector_store_config.get('current_vector_store', {}).get(vector_store_name)
+            if vector_store_info:
+                self.vector_store_id = vector_store_info.get('vector_store_id')
+                self.vector_store_info = vector_store_info
+
 
 class EventHandler(AssistantEventHandler):    
     @override
@@ -43,9 +72,9 @@ class EventHandler(AssistantEventHandler):
 class OpenAIChatService:
     def __init__(
         self, 
-        assistant_id=None, 
-        thread_id=None,
-        vector_store_id=None,
+        thread_id,
+        assistant_id,
+        vector_store_id,
         streamOutput=False,
         eventHandler=EventHandler()
     ):
@@ -53,27 +82,7 @@ class OpenAIChatService:
 
         self.streamOutput = streamOutput
 
-        if not thread_id:
-            thread_id = self.client.beta.threads.create().id
         self.thread_id = thread_id
-
-        vector_store_id = None # Temporary, we are no longer using vector_store ids passed in like this
-        if not assistant_id:
-            current_assistants = 'current_assistants'
-            assistant_to_use = 'tax_assistant'
-            as_config_path = os.path.join(os.path.dirname(__file__), 'assistant_config.json')
-            as_config = load_config(as_config_path)
-            
-            if current_assistants not in as_config or assistant_to_use not in as_config[current_assistants]:
-                logger.error(f"{assistant_to_use} configuration not found in {current_assistants}.")
-                raise ValueError(f"{assistant_to_use} configuration not found in {current_assistants}.")
-            
-            assistant_data = as_config[current_assistants][assistant_to_use]
-            assistant_id = assistant_data.get('assistant_id')
-            vector_store_id = assistant_data.get('vector_store_id')
-            if not assistant_id:
-                raise ValueError(f"assistant_id not found in {current_assistants} for {assistant_to_use}.")
-
         self.assistant_id = assistant_id
         self.vector_store_id = vector_store_id
 

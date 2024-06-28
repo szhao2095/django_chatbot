@@ -1,7 +1,7 @@
 {
     "current_vector_store": {
         "tax_documents": {
-            "vector_store_id": "vs_JC5rttGt2DotDrPBG4pz4ymu",
+            "vector_store_id": "vs_1ZYhfPxNwZq88uuGgpjZD3tH",
             "expires_after_anchor": "last_active_at",
             "expires_after_days": 7,
             "loaded_files": [
@@ -21,6 +21,11 @@
                     "filehash": "6cc551a4e58b64812a6c1c56cc22d6b479e1ffce619eb3b05915b7dc03eb3abe"
                 },
                 {
+                    "filename": "text.txt",
+                    "filetype": "txt",
+                    "filehash": "01a87ed90b0a100acfb7debab36fdc8a317b699a460c068c90ef04b056bd00a9"
+                },
+                {
                     "filename": "text2.txt",
                     "filetype": "txt",
                     "filehash": "62e214adb0d807cff42bd8e34217e21d97c409e11bb2c3e789c94d0c9f8ed52c"
@@ -28,7 +33,7 @@
             ],
             "vector_store_name": "Tax Documents",
             "files_folder": "./vector_store_files/",
-            "last_creation_date": "2024-06-28T21:22:59.513894+00:00"
+            "last_creation_date": "2024-06-28T22:01:44.502967+00:00"
         }
     },
     "desired_vector_store": [
@@ -40,5 +45,5 @@
             "expires_after_anchor": "last_active_at"
         }
     ],
-    "last_run_date": "2024-06-28T21:28:09.501601+00:00"
+    "last_run_date": "2024-06-28T22:42:53.401575+00:00"
 }
