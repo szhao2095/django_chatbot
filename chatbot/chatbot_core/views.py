@@ -1,6 +1,6 @@
 import jwt
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,8 +18,8 @@ class CreateNewChat(APIView):
         unique_id = str(uuid.uuid4())
         payload = {
             'unique_id': unique_id,
-            'exp': datetime.utcnow() + timedelta(days=30),
-            'iat': datetime.utcnow()
+            'exp': datetime.now(timezone.utc) + timedelta(days=30),
+            'iat': datetime.now(timezone.utc)
         }
         new_token = jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
         logger.debug(f"New token created with unique_id: {unique_id}")
