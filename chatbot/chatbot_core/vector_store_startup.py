@@ -1,5 +1,6 @@
 import json
 import os
+import hashlib
 from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 
@@ -35,25 +36,36 @@ def get_file_paths(folder):
 def get_file_type(filename):
     return os.path.splitext(filename)[1][1:]
 
-def get_valid_file_paths(file_paths, loaded_filenames):
+def compute_file_hash(file_path):
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        buf = f.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
+
+def get_valid_file_paths(file_paths, loaded_files):
     valid_file_paths = []
-    new_loaded_files = []
+    new_loaded_files = {}
 
     logger.debug("Starting file validation process.")
     logger.debug(f"Total files found: {len(file_paths)}")
     for path in file_paths:
         filename = os.path.basename(path)
         file_type = get_file_type(filename)
-        logger.debug(f"Checking file {filename} of type {file_type}")
+        file_hash = compute_file_hash(path)
+        logger.debug(f"Checking file {filename} of type {file_type} with hash {file_hash}")
 
-        if filename in loaded_filenames:
-            logger.debug(f"File {filename} is already loaded.")
-            continue
-            
+        if filename in loaded_files:
+            if loaded_files[filename]['filehash'] == file_hash:
+                logger.debug(f"File {filename} is already loaded and unchanged.")
+                continue
+            else:
+                logger.debug(f"File {filename} is already loaded but has changed.")
+
         if file_type in ['doc', 'docx', 'pdf', 'txt']:
             valid_file_paths.append(path)
-            new_loaded_files.append({'filename': filename, 'filetype': file_type})
-            logger.debug(f"Including file {filename} with type {file_type}.")
+            new_loaded_files[filename] = {'filename': filename, 'filetype': file_type, 'filehash': file_hash}
+            logger.debug(f"Including file {filename} with type {file_type} and hash {file_hash}.")
         else:
             logger.debug(f"Skipping file {filename} with unsupported file type {file_type}.")
 
@@ -108,7 +120,7 @@ def main():
         if not os.path.exists(files_folder):
             os.makedirs(files_folder)
         file_paths = get_file_paths(files_folder)
-        loaded_filenames = {file_info['filename'] for file_info in current_store.get('loaded_files', [])}
+        loaded_files = {f['filename']: f for f in current_store.get('loaded_files', [])}
 
         if recreate_vector_store:
             logger.debug(f"Creating or updating the vector store with id: {human_readable_id}.")
@@ -128,21 +140,22 @@ def main():
             current_store['expires_after_anchor'] = expires_after_anchor
             current_store['expires_after_days'] = expires_after_days
 
-            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, set())
+            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, {})
             if valid_file_paths:
                 upload_files(client, vector_store_id, valid_file_paths)
-                current_store['loaded_files'] = new_loaded_files
+                current_store['loaded_files'] = list(new_loaded_files.values())
 
             current_store['vector_store_name'] = desired_store['vector_store_name']
             current_store['files_folder'] = desired_store['files_folder']
             current_store['last_creation_date'] = now.isoformat()
         else:
             logger.debug(f"Checking for new files to upload for vector store with id: {human_readable_id}.")
-            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, loaded_filenames)
+            valid_file_paths, new_loaded_files = get_valid_file_paths(file_paths, loaded_files)
 
             if valid_file_paths:
                 upload_files(client, vector_store_id, valid_file_paths)
-                current_store['loaded_files'].extend(new_loaded_files)
+                loaded_files.update(new_loaded_files)
+                current_store['loaded_files'] = list(loaded_files.values())
 
         config['current_vector_store'][human_readable_id] = current_store
 
