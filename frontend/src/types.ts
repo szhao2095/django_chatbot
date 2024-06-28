@@ -4,5 +4,6 @@ export interface MessageType {
     user: string;
     userImage: string;
     type: 'sent' | 'received';
+    isError?: boolean;
   }
   
