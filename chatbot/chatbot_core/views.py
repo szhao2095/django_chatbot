@@ -25,14 +25,16 @@ class CreateNewChat(APIView):
         logger.debug(f"New token created with unique_id: {unique_id}")
 
         # Create a new ChatRecord entry
-        _ = ChatRecord.objects.create(
+        new_record = ChatRecord(
             unique_id=unique_id,
             thread_id=new_chat.thread_id,
             assistant_id=new_chat.assistant_id,
-            assistant_info=new_chat.assistant_info,
             vector_store_id=new_chat.vector_store_id,
-            vector_store_info=new_chat.vector_store_info
         )
+        new_record.set_assistant_info(new_chat.assistant_info)
+        new_record.set_vector_store_info(new_chat.vector_store_info)
+        new_record.save()
+
         logger.debug("New chat record created")
 
         return Response({
